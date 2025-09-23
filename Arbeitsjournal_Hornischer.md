@@ -21,3 +21,7 @@
 **Code Implementation**
 - Created examples for LED control
 - Externer Power Supply missing to test
+
+**Testing Piezo-Speaker**
+- Pin: 5 -> D1
+- Testing various frequencies
