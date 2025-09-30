@@ -25,3 +25,10 @@
 **Testing Piezo-Speaker**
 - Pin: 5 -> D1
 - Testing various frequencies
+
+### 30.09.2025
+
+**Planing the circuit**
+- Planing and drawing the plan of the circuit (leaving out the pedal)
+- Braze the Step Down 
+- Building the circuit
