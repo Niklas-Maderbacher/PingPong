@@ -32,3 +32,11 @@
 - Planing and drawing the plan of the circuit (leaving out the pedal)
 - Braze the Step Down 
 - Building the circuit
+
+### 07.10.2025
+
+**Circuit correction**
+- added Level Shifter
+- changed circuit to following construction:
+![Working_circuit](working_circuit.png)
+- Runlight programm written and tested (led.py)
