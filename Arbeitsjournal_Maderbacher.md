@@ -32,3 +32,22 @@ Begonnen wurde die Stunde mit der Erstellung vom Schaltplan. Dieser wurde von Ha
 ### Ablauf
 
 Begonnen wurde die Stunde mit einer Änderung am Aufbau, nach Angaben von Herr Professor Weißensteiner. Danach wurde begonnen, den LED-Streifen anzusteuern, was durch die Schulsprecherwahl unterbrochen wurde. Richtung Ende der Stunde konnten wir als erstes Team ein Lauflicht zum laufen bringen, wodurch wir und **ein Mitarbeitsplus** verdienten.
+
+## 14.10.2025
+
+- Schaltplan verschönern
+- LED-Streifen ansteuern
+
+### Ablauf
+
+Begonnen wurde die Stunde mit einer leichten Änderung an der Schaltung, wobei uns ein Fehler unterlaufen ist und ein Großteil der Zeit dafür verwendet wurde. Richtung Ende der Stunde wurde wieder versucht, den LED-Streifen anzusteuern
+
+## 21.10.2025
+
+- Fußtaster einbauen
+- Fußtaster verwenden
+
+### Ablauf
+
+Begonnen wurde die Stunde damit, das der Fußtaster eingebaut wurde und einmal versucht Werte vom Taster zu erhalten. Dabei wussten wir noch nicht, dass der Fußtaster entweder HIGH oder LOW liefert und nicht wie ein gewöhnlicher Knopf während dem Drücken den Zustand ändert, sondern erst nach dem drücken. Richtung Ende der Stunde wurde dies in den bereits bestehenden Code eingebaut. Ein Richtungswechsel per Taster ist nun möglich, nun müssen nur noch die End-Zone, ein weiterer Taster und der "Ball-Abtausch" implementiert werden.
+
