@@ -42,6 +42,15 @@
 - Runlight programm written and tested (led.py)
 
 ### 14.10.2025
-- Code where LED reacts to keyboard input as preperation for the pedal
+- Code where LED reacts to keyboard input as preperation for the Stomp Switch
 
 ### 21.10.2025
+- Added Stomp Switch
+- Making the ball bounce back when stomp switch is pressed
+  - Problem: Need to check for a state switch instead of the state (HIGH/LOW) (solved)
+- Missing:
+  - Zones to bounce back the "ball"
+  - Second Stomp switch
+  - Victory/Loose State for the LED
+  - Adjustments to improve the game (pace, colours, LED Trail)
+  - README.md
