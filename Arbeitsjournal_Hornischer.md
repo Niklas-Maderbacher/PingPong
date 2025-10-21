@@ -40,3 +40,8 @@
 - changed circuit to following construction:
 ![Working_circuit](working_circuit.png)
 - Runlight programm written and tested (led.py)
+
+### 14.10.2025
+- Code where LED reacts to keyboard input as preperation for the pedal
+
+### 21.10.2025

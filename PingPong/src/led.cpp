@@ -18,6 +18,7 @@ enum LEDState {
 LEDState currentState = RUNLIGHT_ACTIVE;
 
 void setup() {
+  Serial.begin(115200);
   FastLED.addLeds<WS2811, DATA_PIN, GRB>(leds, NUM_LEDS);
   FastLED.setBrightness(50);
   
@@ -27,6 +28,21 @@ void setup() {
 
 void loop() {
   unsigned long currentMillis = millis();
+  
+  if (Serial.available() > 0) {
+    char command = Serial.read();
+    if (command == 'r' || command == 'R') {
+      reverseDirection = true;
+    } else if (command == 'f' || command == 'F') {
+      reverseDirection = false;
+    } else if (command == 't' || command == 'T') {
+      reverseDirection = !reverseDirection;
+    }
+    
+    while (Serial.available() > 0) {
+      Serial.read();
+    }
+  }
   
   switch (currentState) {
     case RUNLIGHT_ACTIVE:
@@ -47,14 +63,12 @@ void loop() {
         if (!reverseDirection) {
           currentPosition++;
           if (currentPosition >= NUM_LEDS) {
-            reverseDirection = true;
-            currentPosition = NUM_LEDS - 2;
+            currentPosition = NUM_LEDS - 1;
           }
         } else {
           currentPosition--;
           if (currentPosition < 0) {
-            reverseDirection = false;
-            currentPosition = 1;
+            currentPosition = 0;
           }
         }
         
