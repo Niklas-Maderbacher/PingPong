@@ -1,130 +1,288 @@
-// // -------------------------------------------------
-// // Copyright (c) 2022 HiBit <https://www.hibit.dev>
-// // -------------------------------------------------
+#include <Arduino.h>
+#include <FastLED.h>
 
-// #include "../lib/pitches.h"
+#define NUM_LEDS 50
+#define DATA_PIN 14
+#define SWITCH_PIN 18
 
-// #include <Arduino.h>
 
-// #define BUZZER_PIN 5
+CRGB leds[NUM_LEDS];
 
-// int melody[] = {
-//   NOTE_G4, NOTE_C4, NOTE_DS4, NOTE_F4, NOTE_G4, NOTE_C4, NOTE_DS4, NOTE_F4,
-//   NOTE_G4, NOTE_C4, NOTE_DS4, NOTE_F4, NOTE_G4, NOTE_C4, NOTE_DS4, NOTE_F4,
-//   NOTE_G4, NOTE_C4, NOTE_E4, NOTE_F4, NOTE_G4, NOTE_C4, NOTE_E4, NOTE_F4,
-//   NOTE_G4, NOTE_C4, NOTE_E4, NOTE_F4, NOTE_G4, NOTE_C4, NOTE_E4, NOTE_F4,
-//   NOTE_G4, NOTE_C4,
-  
-//   NOTE_DS4, NOTE_F4, NOTE_G4, NOTE_C4, NOTE_DS4, NOTE_F4,
-//   NOTE_D4,
-//   NOTE_F4, NOTE_AS3,
-//   NOTE_DS4, NOTE_D4, NOTE_F4, NOTE_AS3,
-//   NOTE_DS4, NOTE_D4, NOTE_C4,
-  
-//   NOTE_G4, NOTE_C4,
-  
-//   NOTE_DS4, NOTE_F4, NOTE_G4, NOTE_C4, NOTE_DS4, NOTE_F4,
-//   NOTE_D4,
-//   NOTE_F4, NOTE_AS3,
-//   NOTE_DS4, NOTE_D4, NOTE_F4, NOTE_AS3,
-//   NOTE_DS4, NOTE_D4, NOTE_C4,
-//   NOTE_G4, NOTE_C4,
-//   NOTE_DS4, NOTE_F4, NOTE_G4,  NOTE_C4, NOTE_DS4, NOTE_F4,
-  
-//   NOTE_D4,
-//   NOTE_F4, NOTE_AS3,
-//   NOTE_D4, NOTE_DS4, NOTE_D4, NOTE_AS3,
-//   NOTE_C4,
-//   NOTE_C5,
-//   NOTE_AS4,
-//   NOTE_C4,
-//   NOTE_G4,
-//   NOTE_DS4,
-//   NOTE_DS4, NOTE_F4,
-//   NOTE_G4,
-  
-//   NOTE_C5,
-//   NOTE_AS4,
-//   NOTE_C4,
-//   NOTE_G4,
-//   NOTE_DS4,
-//   NOTE_DS4, NOTE_D4,
-//   NOTE_C5, NOTE_G4, NOTE_GS4, NOTE_AS4, NOTE_C5, NOTE_G4, NOTE_GS4, NOTE_AS4,
-//   NOTE_C5, NOTE_G4, NOTE_GS4, NOTE_AS4, NOTE_C5, NOTE_G4, NOTE_GS4, NOTE_AS4,
-  
-//   REST, NOTE_GS5, NOTE_AS5, NOTE_C6, NOTE_G5, NOTE_GS5, NOTE_AS5,
-//   NOTE_C6, NOTE_G5, NOTE_GS5, NOTE_AS5, NOTE_C6, NOTE_G5, NOTE_GS5, NOTE_AS5
-// };
+unsigned long previousMillis = 0;
+const long interval = 80;
+unsigned long currentMillis = 0;
 
-// int durations[] = {
-//   8, 8, 16, 16, 8, 8, 16, 16,
-//   8, 8, 16, 16, 8, 8, 16, 16,
-//   8, 8, 16, 16, 8, 8, 16, 16,
-//   8, 8, 16, 16, 8, 8, 16, 16,
-//   4, 4,
-  
-//   16, 16, 4, 4, 16, 16,
-//   1,
-//   4, 4,
-//   16, 16, 4, 4,
-//   16, 16, 1,
-  
-//   4, 4,
-  
-//   16, 16, 4, 4, 16, 16,
-//   1,
-//   4, 4,
-//   16, 16, 4, 4,
-//   16, 16, 1,
-//   4, 4,
-//   16, 16, 4, 4, 16, 16,
-  
-//   2,
-//   4, 4,
-//   8, 8, 8, 8,
-//   1,
-//   2,
-//   2,
-//   2,
-//   2,
-//   2,
-//   4, 4,
-//   1,
-  
-//   2,
-//   2,
-//   2,
-//   2,
-//   2,
-//   4, 4,
-//   8, 8, 16, 16, 8, 8, 16, 16,
-//   8, 8, 16, 16, 8, 8, 16, 16,
-  
-//   4, 16, 16, 8, 8, 16, 16,
-//   8, 16, 16, 16, 8, 8, 16, 16
-// };
+// Permanent blinking timing-window indicator
+unsigned long zoneBlinkTimer = 0;
+bool zoneBlinkState = false;
 
-// void setup()
-// {
-//   pinMode(BUZZER_PIN, OUTPUT);
-// }
 
-// void loop()
-// {
-//   int size = sizeof(durations) / sizeof(int);
+int currentPosition = 0;
+bool reverseDirection = false;
 
-//   for (int note = 0; note < size; note++) {
-//     //to calculate the note duration, take one second divided by the note type.
-//     //e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc.
-//     int duration = 1000 / durations[note];
-//     tone(BUZZER_PIN, melody[note], duration);
+bool running = true;
 
-//     //to distinguish the notes, set a minimum time between them.
-//     //the note's duration + 30% seems to work well:
-//     int pauseBetweenNotes = duration * 1.30;
-//     delay(pauseBetweenNotes);
+bool currentSwitchState = HIGH;
+bool oldSwitchState = LOW;
 
-//     //stop the tone playing:
-//     noTone(BUZZER_PIN);
-//   }
-// }
+// Timing window settings
+const int TIMING_WINDOW_SIZE = 10; // Number of LEDs at start/end where button must be pressed
+const unsigned long TIMING_WINDOW_START = 500; // Start of timing window (ms)
+const unsigned long TIMING_WINDOW_END = 2000;  // End of timing window (ms)
+unsigned long timingWindowStartTime = 0;
+bool inTimingWindow = false;
+bool timingWindowActive = false;
+
+enum LEDState
+{
+  RUNLIGHT_ACTIVE
+};
+LEDState currentState = RUNLIGHT_ACTIVE;
+
+void setup()
+{
+  Serial.begin(115200);
+  FastLED.addLeds<WS2811, DATA_PIN, BRG>(leds, NUM_LEDS);
+  FastLED.setBrightness(50);
+
+  pinMode(SWITCH_PIN, INPUT_PULLUP);
+
+  currentSwitchState = digitalRead(SWITCH_PIN);
+
+  FastLED.clear();
+
+  Serial.println("=== LED Lauflicht Test startet ===");
+  Serial.println("Setup abgeschlossen");
+  Serial.print("Initiale Schalterzustand: ");
+  Serial.println(currentSwitchState == HIGH ? "HIGH (nicht gedrückt)" : "LOW (gedrückt)");
+  Serial.print("Initiale Richtung: ");
+  Serial.println(reverseDirection ? "Rückwärts" : "Vorwärts");
+  Serial.print("Aktuelle Position: ");
+  Serial.println(currentPosition);
+  Serial.print("Timing Fenster: ");
+  Serial.print(TIMING_WINDOW_START);
+  Serial.print(" - ");
+  Serial.print(TIMING_WINDOW_END);
+  Serial.println(" ms");
+  Serial.print("Timing Bereich: erste/letzte ");
+  Serial.print(TIMING_WINDOW_SIZE);
+  Serial.println(" LEDs");
+  Serial.println("==================================");
+}
+
+void checkTimingWindow()
+{
+  currentSwitchState = digitalRead(SWITCH_PIN);
+
+  // Check if we're entering a timing window position
+  if (running && !timingWindowActive) 
+  {
+    bool nearStart = (!reverseDirection && currentPosition >= NUM_LEDS - TIMING_WINDOW_SIZE);
+    bool nearEnd = (reverseDirection && currentPosition < TIMING_WINDOW_SIZE);
+    
+    if (nearStart || nearEnd) 
+    {
+      timingWindowActive = true;
+      inTimingWindow = false;
+      timingWindowStartTime = currentMillis;
+      Serial.println("*** Timing Fenster aktiv - bereite Button-Press vor ***");
+      Serial.print("Drücke den Button zwischen ");
+      Serial.print(TIMING_WINDOW_START);
+      Serial.print(" und ");
+      Serial.print(TIMING_WINDOW_END);
+      Serial.println(" ms für Fortsetzung!");
+    }
+  }
+
+  // Handle timing window logic
+  if (timingWindowActive) 
+  {
+    unsigned long windowElapsed = currentMillis - timingWindowStartTime;
+    
+    // Check if we're in the valid timing window
+    if (windowElapsed >= TIMING_WINDOW_START && windowElapsed <= TIMING_WINDOW_END) 
+    {
+      if (!inTimingWindow) 
+      {
+        inTimingWindow = true;
+        Serial.println(">>> TIMING FENSTER JETZT AKTIV - BUTTON DRÜCKEN! <<<");
+      }
+      
+      // Check for button press during timing window
+      if (currentSwitchState == LOW && oldSwitchState == HIGH) 
+      {
+        // Successful timing!
+        reverseDirection = !reverseDirection;
+        oldSwitchState = LOW;
+        
+        if (reverseDirection) 
+        {
+          currentPosition = NUM_LEDS - 1;
+        } 
+        else 
+        {
+          currentPosition = 0;
+        }
+        
+        timingWindowActive = false;
+        inTimingWindow = false;
+        running = true;
+        
+        Serial.println("*** ERFOLG! Richtung geändert - Lauflicht geht weiter! ***");
+        Serial.print("Neue Richtung: ");
+        Serial.println(reverseDirection ? "Rückwärts" : "Vorwärts");
+        
+        // Clear any timing window visuals
+        FastLED.clear();
+        return;
+      }
+    } 
+    else if (windowElapsed > TIMING_WINDOW_END) 
+    {
+      // Timing window expired - stop the runlight
+      timingWindowActive = false;
+      inTimingWindow = false;
+      running = false;
+      
+      Serial.println("*** FEHLER! Timing Fenster abgelaufen - Lauflicht gestoppt! ***");
+      Serial.println("*** Drücke Button um neu zu starten ***");
+      
+      // Show failure indication (all red briefly)
+      for (int i = 0; i < NUM_LEDS; i++) 
+      {
+        leds[i] = CRGB::Red;
+      }
+      FastLED.show();
+      delay(1000);
+      FastLED.clear();
+      FastLED.show();
+    }
+  }
+
+  // Regular button press (outside timing windows) to restart
+  if (!running && !timingWindowActive && currentSwitchState == LOW && oldSwitchState == HIGH) 
+  {
+    // Reset to start
+    reverseDirection = false;
+    currentPosition = 0;
+    running = true;
+    oldSwitchState = LOW;
+    
+    Serial.println("*** Neustart vom Anfang ***");
+  }
+
+  // Update old switch state
+  if (currentSwitchState == HIGH) 
+  {
+    oldSwitchState = HIGH;
+  }
+}
+
+void drawBlinkingZones() {
+    for (int i = 0; i < TIMING_WINDOW_SIZE; i++) {
+        leds[i] = zoneBlinkState ? CRGB::Blue : CRGB::Black;           // start zone
+        leds[NUM_LEDS - 1 - i] = zoneBlinkState ? CRGB::Blue : CRGB::Black; // end zone
+    }
+
+    // Update blinking state every 200ms
+    if (currentMillis - zoneBlinkTimer >= 200) {
+        zoneBlinkTimer = currentMillis;
+        zoneBlinkState = !zoneBlinkState;
+    }
+}
+
+
+void light_led()
+{
+  switch (currentState)
+  {
+  case RUNLIGHT_ACTIVE:
+    if (currentMillis - previousMillis >= interval && running && !timingWindowActive)
+    {
+      FastLED.clear();
+
+      // Main LED
+      leds[currentPosition] = CRGB::Green;
+
+      // Trail effect
+      for (int i = 1; i <= 3; i++)
+      {
+        int trailPos = currentPosition - (reverseDirection ? -i : i);
+        if (trailPos >= 0 && trailPos < NUM_LEDS)
+        {
+          leds[trailPos] = CRGB(0, 255 / (i * 2), 0);
+        }
+      }
+
+
+      if (currentPosition % 10 == 0)
+      {
+        Serial.print("LED Position: ");
+        Serial.print(currentPosition);
+        Serial.print(" | Richtung: ");
+        Serial.print(reverseDirection ? "Rückwärts" : "Vorwärts");
+        Serial.print(" | Laufend: ");
+        Serial.print(running ? "Ja" : "Nein");
+        Serial.print(" | Timing Fenster: ");
+        Serial.println(timingWindowActive ? "Aktiv" : "Inaktiv");
+      }
+
+      // Move position
+      if (!reverseDirection)
+      {
+        currentPosition++;
+        if (currentPosition >= NUM_LEDS)
+        {
+          currentPosition = NUM_LEDS - 1; // Set to end to trigger timing window
+        }
+      }
+      else
+      {
+        currentPosition--;
+        if (currentPosition < 0)
+        {
+          currentPosition = 0; // Set to before start to trigger timing window
+        }
+      }
+
+      previousMillis = currentMillis;
+    }
+    break;
+  }
+}
+
+void loop()
+{
+  currentMillis = millis();
+  checkTimingWindow();
+  light_led();
+
+  drawBlinkingZones();
+
+  FastLED.show();
+
+  static unsigned long lastStatusReport = 0;
+  if (currentMillis - lastStatusReport >= 5000)
+  {
+    lastStatusReport = currentMillis;
+    Serial.println("=== Status Report ===");
+    Serial.print("Aktuelle Position: ");
+    Serial.println(currentPosition);
+    Serial.print("Richtung: ");
+    Serial.println(reverseDirection ? "Rückwärts" : "Vorwärts");
+    Serial.print("Lauflicht aktiv: ");
+    Serial.println(running ? "Ja" : "Nein");
+    Serial.print("Timing Fenster aktiv: ");
+    Serial.println(timingWindowActive ? "Ja" : "Nein");
+    if (timingWindowActive) 
+    {
+      Serial.print("Timing verbleibend: ");
+      Serial.print(TIMING_WINDOW_END - (currentMillis - timingWindowStartTime));
+      Serial.println(" ms");
+    }
+    Serial.print("Schalterzustand: ");
+    Serial.println(digitalRead(SWITCH_PIN) == HIGH ? "HIGH (nicht gedrückt)" : "LOW (gedrückt)");
+    Serial.println("=====================");
+  }
+}
+
