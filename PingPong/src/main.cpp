@@ -12,7 +12,7 @@ unsigned long previousMillis = 0;
 const long interval = 80;
 unsigned long currentMillis = 0;
 
-bool currentPlayer = true; // true = player 1, false = player 2
+bool currentPlayer = false; // true = player 1, false = player 2
 
 // Permanent blinking timing-window indicator
 unsigned long zoneBlinkTimer = 0;
@@ -29,8 +29,8 @@ bool oldSwitchState = LOW;
 
 // Timing window settings
 const int TIMING_WINDOW_SIZE = 10; // Number of LEDs at start/end where button must be pressed
-const unsigned long TIMING_WINDOW_START = 500; // Start of timing window (ms)
-const unsigned long TIMING_WINDOW_END = 2000;  // End of timing window (ms)
+const unsigned long TIMING_WINDOW_START = 50; // Start of timing window (ms)
+const unsigned long TIMING_WINDOW_END = 400;  // End of timing window (ms)
 unsigned long timingWindowStartTime = 0;
 bool inTimingWindow = false;
 bool timingWindowActive = false;
@@ -270,9 +270,10 @@ void loop()
 {
   currentMillis = millis();
   checkTimingWindow();
+  drawBlinkingZones();
   light_led();
 
-  drawBlinkingZones();
+  
 
   FastLED.show();
 
@@ -300,4 +301,3 @@ void loop()
     Serial.println("=====================");
   }
 }
-
