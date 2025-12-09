@@ -4,13 +4,15 @@
 #define NUM_LEDS 50
 #define DATA_PIN 14
 #define SWITCH_PIN 18
-
+#define SWITCH_PIN_ENEMY 19
 
 CRGB leds[NUM_LEDS];
 
 unsigned long previousMillis = 0;
 const long interval = 80;
 unsigned long currentMillis = 0;
+
+bool currentPlayer = true; // true = player 1, false = player 2
 
 // Permanent blinking timing-window indicator
 unsigned long zoneBlinkTimer = 0;
@@ -46,6 +48,7 @@ void setup()
   FastLED.setBrightness(50);
 
   pinMode(SWITCH_PIN, INPUT_PULLUP);
+  pinMode(SWITCH_PIN_ENEMY, INPUT_PULLUP);
 
   currentSwitchState = digitalRead(SWITCH_PIN);
 
@@ -69,10 +72,22 @@ void setup()
   Serial.println(" LEDs");
   Serial.println("==================================");
 }
+// swaps between players after each button pressed
+int getCurrentPlayerInput()
+{
+  if (currentPlayer)
+  {
+    currentPlayer = false;
+    return digitalRead(SWITCH_PIN);
+  } else if (!currentPlayer) {
+    currentPlayer = true;
+    return digitalRead(SWITCH_PIN_ENEMY);
+  }
+}
 
 void checkTimingWindow()
 {
-  currentSwitchState = digitalRead(SWITCH_PIN);
+  currentSwitchState = getCurrentPlayerInput();
 
   // Check if we're entering a timing window position
   if (running && !timingWindowActive) 
